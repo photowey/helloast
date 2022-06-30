@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/photowey/helloast/internal/astx"
-	"github.com/photowey/helloast/internal/extractor"
-	"github.com/photowey/helloast/internal/loader"
+	"github.com/photowey/helloast/internal/astx/extractor"
+	"github.com/photowey/helloast/internal/astx/loader"
 )
 
 const (
@@ -32,8 +32,9 @@ func run() error {
 
 	rf := filepath.Join(wd, "./...")
 
-	doScan(wd)
-	loadRoots(rf)
+	// doScan(wd)
+	// loadRoots(rf)
+	scanPkg(rf)
 
 	return nil
 }
@@ -78,4 +79,8 @@ func loadRoots(rootPaths ...string) {
 	for _, root := range roots {
 		fmt.Println(root)
 	}
+}
+
+func scanPkg(rootPaths ...string) {
+	_extractor_.ScanPackage(rootPaths...)
 }

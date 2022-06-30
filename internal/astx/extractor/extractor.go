@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/photowey/helloast/internal/astx"
+	"github.com/photowey/helloast/internal/astx/loader"
+	"github.com/photowey/helloast/internal/astx/parser"
 )
 
 var _ Extractor = (*extractor)(nil)
@@ -15,6 +17,7 @@ type Extractor interface {
 	StructSpec(_astx_ *astx.Ast)
 	InterfaceSpec(_astx_ *astx.Ast)
 	FuncSpec(_astx_ *astx.Ast)
+	ScanPackage(rootPaths ...string) []*astx.AstSpec
 }
 
 type extractor struct{}
@@ -28,46 +31,44 @@ func (e *extractor) Package(_astx_ *astx.Ast) {
 
 func (e *extractor) ValueSpec(_astx_ *astx.Ast) {
 	for _, d := range _astx_.Ast.Decls {
-		if strings.HasSuffix(_astx_.Path, "ping_handler.go") {
-			switch decl := d.(type) {
-			case *ast.GenDecl:
-				for _, spec := range decl.Specs {
-					switch specVal := spec.(type) {
-					case *ast.ValueSpec:
-						values := make([]astx.Value, 0, len(specVal.Values))
-						names := specVal.Names
-						composite := false
-						for idx, value := range specVal.Values {
-							if bl, ok := value.(*ast.BasicLit); ok {
-								values = append(values, astx.Value{
-									Composite: false,
-									Kind:      bl.Kind,
-									Name:      names[idx].Name,
-									Value:     bl.Value,
-								})
-							}
-							if cl, ok := value.(*ast.CompositeLit); ok {
-								for _, elt := range cl.Elts {
-									if bl, okk := elt.(*ast.BasicLit); okk {
-										composite = true
-										values = append(values, astx.Value{
-											Composite: composite,
-											Kind:      bl.Kind,
-											Name:      names[0].Name,
-											Value:     bl.Value,
-										})
-									}
+		switch decl := d.(type) {
+		case *ast.GenDecl:
+			for _, spec := range decl.Specs {
+				switch specVal := spec.(type) {
+				case *ast.ValueSpec:
+					values := make([]astx.Value, 0, len(specVal.Values))
+					names := specVal.Names
+					composite := false
+					for idx, value := range specVal.Values {
+						if bl, ok := value.(*ast.BasicLit); ok {
+							values = append(values, astx.Value{
+								Composite: false,
+								Kind:      bl.Kind,
+								Name:      names[idx].Name,
+								Value:     bl.Value,
+							})
+						}
+						if cl, ok := value.(*ast.CompositeLit); ok {
+							for _, elt := range cl.Elts {
+								if bl, okk := elt.(*ast.BasicLit); okk {
+									composite = true
+									values = append(values, astx.Value{
+										Composite: composite,
+										Kind:      bl.Kind,
+										Name:      names[0].Name,
+										Value:     bl.Value,
+									})
 								}
 							}
 						}
-						vs := &astx.ValueSpec{
-							Pkg:       _astx_.Pkg,
-							Tok:       decl.Tok,
-							Composite: composite,
-							Values:    values,
-						}
-						_astx_.Values = append(_astx_.Values, vs)
 					}
+					vs := &astx.ValueSpec{
+						Pkg:       _astx_.Pkg,
+						Tok:       decl.Tok,
+						Composite: composite,
+						Values:    values,
+					}
+					_astx_.Values = append(_astx_.Values, vs)
 				}
 			}
 		}
@@ -180,6 +181,22 @@ func (e *extractor) FuncSpec(_astx_ *astx.Ast) {
 			}
 		}
 	}
+}
+
+func (e *extractor) ScanPackage(rootPaths ...string) []*astx.AstSpec {
+	roots, err := loader.LoadRoots(rootPaths...)
+	if err != nil {
+		panic(err)
+	}
+
+	ass := make([]*astx.AstSpec, 0, len(roots))
+
+	for _, root := range roots {
+		as := parser.Parse(root)
+		ass = append(ass, as)
+	}
+
+	return ass
 }
 
 func NewExtractor() Extractor {

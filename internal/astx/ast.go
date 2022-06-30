@@ -10,17 +10,6 @@ import (
 
 const commentPrefix = string("//")
 
-type Ast struct {
-	Path       string
-	Name       string
-	Pkg        string
-	Values     []*ValueSpec
-	Structs    []*StructSpec
-	Interfaces []*InterfaceSpec
-	Funcs      []*FuncSpec
-	Ast        *ast.File
-}
-
 func NewAst(path string) *Ast {
 	name := filepath.Base(path)
 	_ast_, err := buildAstFile(path)

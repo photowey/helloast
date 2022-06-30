@@ -1,8 +1,25 @@
 package astx
 
 import (
+	"go/ast"
 	"go/token"
 )
+
+type Ast struct {
+	Path       string
+	Name       string
+	Pkg        string
+	Values     []*ValueSpec
+	Structs    []*StructSpec
+	Interfaces []*InterfaceSpec
+	Funcs      []*FuncSpec
+	Ast        *ast.File
+}
+
+type AstSpec struct {
+	Path string
+	Pkgs []*PackageSpec
+}
 
 type ValueSpec struct {
 	Pkg       string
@@ -18,8 +35,15 @@ type Value struct {
 	Value     any
 }
 
+type PackageSpec struct {
+	Pkg     string
+	Alias   string
+	Structs []*StructSpec
+}
+
 type StructSpec struct {
 	Pkg         string
+	Alias       string
 	Name        string
 	Type        token.Pos
 	Comments    []string

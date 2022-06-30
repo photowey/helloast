@@ -44,25 +44,6 @@ type loader struct {
 	packagesMu sync.Mutex
 }
 
-func (l *loader) parseFile(filename string, src []byte) (*ast.File, error) {
-	file, err := parser.ParseFile(l.conf.Fset, filename, src, parser.AllErrors|parser.ParseComments)
-	if err != nil {
-		return nil, err
-	}
-
-	return file, nil
-}
-
-func (l *loader) packageFor(pkgRaw *packages.Package) *Package {
-	if l.packages[pkgRaw] == nil {
-		l.packages[pkgRaw] = &Package{
-			Package: pkgRaw,
-			loader:  l,
-		}
-	}
-	return l.packages[pkgRaw]
-}
-
 func LoadRoots(rootPaths ...string) ([]*Package, error) {
 	return LoadRootsWithConfig(&packages.Config{}, rootPaths...)
 }
@@ -202,4 +183,42 @@ func LoadRootsWithConfig(conf *packages.Config, roots ...string) ([]*Package, er
 	}
 
 	return ldr.Roots, nil
+}
+
+func (p *Package) Imports() map[string]*Package {
+	if p.imports == nil {
+		p.imports = p.loader.packagesFor(p.Package.Imports)
+	}
+
+	return p.imports
+}
+
+func (l *loader) parseFile(filename string, src []byte) (*ast.File, error) {
+	file, err := parser.ParseFile(l.conf.Fset, filename, src, parser.AllErrors|parser.ParseComments)
+	if err != nil {
+		return nil, err
+	}
+
+	return file, nil
+}
+
+func (l *loader) packageFor(pkgRaw *packages.Package) *Package {
+	if l.packages[pkgRaw] == nil {
+		l.packages[pkgRaw] = &Package{
+			Package: pkgRaw,
+			loader:  l,
+		}
+	}
+	return l.packages[pkgRaw]
+}
+
+func (l *loader) packagesFor(pkgsRaw map[string]*packages.Package) map[string]*Package {
+	l.packagesMu.Lock()
+	defer l.packagesMu.Unlock()
+
+	out := make(map[string]*Package, len(pkgsRaw))
+	for name, rawPkg := range pkgsRaw {
+		out[name] = l.packageFor(rawPkg)
+	}
+	return out
 }
