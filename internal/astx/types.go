@@ -3,6 +3,8 @@ package astx
 import (
 	"go/ast"
 	"go/token"
+
+	"github.com/photowey/helloast/internal/astx/loader"
 )
 
 type Ast struct {
@@ -16,9 +18,19 @@ type Ast struct {
 	Ast        *ast.File
 }
 
-type AstSpec struct {
+type Astx struct {
+	*loader.Package
 	Path string
-	Pkgs []*PackageSpec
+	Name string
+	Pkg  string
+	Ast  *ast.File
+}
+
+type AstSpec struct {
+	ID      string
+	Name    string
+	PkgPath string
+	Pkgs    []*PackageSpec
 }
 
 type ValueSpec struct {
@@ -36,9 +48,11 @@ type Value struct {
 }
 
 type PackageSpec struct {
-	Pkg     string
-	Alias   string
-	Structs []*StructSpec
+	Pkg        string
+	Alias      string
+	Structs    []*StructSpec
+	Interfaces []*InterfaceSpec
+	Funcs      []*FuncSpec
 }
 
 type StructSpec struct {

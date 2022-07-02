@@ -17,10 +17,7 @@ const (
 	RestController = "@RestController"
 )
 
-var (
-	funcMap     = make(map[string]*struct{})
-	_extractor_ = extractor.NewExtractor()
-)
+var _extractor_ = extractor.NewExtractor()
 
 func Run() error {
 	return run()

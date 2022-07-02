@@ -6,13 +6,15 @@ import (
 	"go/token"
 	"io/ioutil"
 	"path/filepath"
+
+	"github.com/photowey/helloast/internal/astx/loader"
 )
 
 const commentPrefix = string("//")
 
 func NewAst(path string) *Ast {
 	name := filepath.Base(path)
-	_ast_, err := buildAstFile(path)
+	_ast_, err := BuildAstFile(path)
 	if err != nil {
 		panic(err)
 	}
@@ -31,26 +33,25 @@ func NewAst(path string) *Ast {
 	return astx
 }
 
-type AnalysisResult struct {
-	PkgName     string
-	RecvMethods map[string][]MethodInfo
-	Funcs       []FuncInfo
+func NewAstx(path string, lpkg *loader.Package) *Astx {
+	pkg := lpkg.PkgPath
+	name := filepath.Base(path)
+	af, err := BuildAstFile(path)
+	if err != nil {
+		panic(err)
+	}
+	astx := &Astx{
+		Package: lpkg,
+		Path:    path,
+		Name:    name,
+		Pkg:     pkg,
+		Ast:     af,
+	}
+
+	return astx
 }
 
-type MethodInfo struct {
-	PkgName    string
-	RecvName   string
-	MethodName string
-	Comment    []string
-}
-
-type FuncInfo struct {
-	PkgName  string
-	FuncName string
-	Comment  []string
-}
-
-func buildAstFile(path string) (*ast.File, error) {
+func BuildAstFile(path string) (*ast.File, error) {
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
