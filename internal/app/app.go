@@ -27,11 +27,11 @@ func run() error {
 	wd, _ := os.Getwd()
 	fmt.Printf("App.start on:%s \n", wd)
 
-	rf := filepath.Join(wd, "./...")
+	// rf := filepath.Join(wd, "./...")
 
-	// doScan(wd)
+	doScan(wd)
 	// loadRoots(rf)
-	scanPkg(rf)
+	// scanPkg(rf)
 
 	return nil
 }

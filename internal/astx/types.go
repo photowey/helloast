@@ -70,14 +70,16 @@ type FieldSpec struct {
 	Struct string
 	Name   string
 	Type   string
-	Tags   []TagSpec
+	Ptr    bool
+	Tags   []*TagSpec
 }
 
 type TagSpec struct {
 	Field string
-	Tags  []Tag
+	Tags  []*Tag
 }
 type Tag struct {
+	Name  string
 	Key   string
 	Value string
 }
@@ -118,6 +120,7 @@ type ParamSpec struct {
 	Pkg      string
 	FuncName string
 	Name     string
+	Ptr      bool
 	Type     string
 }
 
@@ -125,5 +128,6 @@ type ReturnSpec struct {
 	Pkg      string
 	FuncName string
 	Name     string
+	Ptr      bool
 	Type     string
 }
